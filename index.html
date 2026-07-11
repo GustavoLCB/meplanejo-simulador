@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Renda — Plataforma de Planejamento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #0F2135;
+    --ink-2: #16314F;
+    --ink-3: #1D3C5E;
+    --paper: #EEF1F1;
+    --paper-2: #FFFFFF;
+    --gold: #B8874A;
+    --gold-light: #D9B579;
+    --teal: #2F6F5E;
+    --brick: #9C4A36;
+    --text-ink: #142238;
+    --text-muted: #5B6B7A;
+    --line: #D8DEDD;
+    --line-ink: rgba(255,255,255,0.14);
+  }
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    background: var(--paper);
+    color: var(--text-ink);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  .wrap{ max-width: 1180px; margin: 0 auto; padding: 0 20px 60px; }
+
+  /* ---------- NAVBAR ---------- */
+  .navbar{
+    background: var(--ink);
+    border-bottom: 1px solid var(--line-ink);
+    position: sticky; top:0; z-index: 50;
+  }
+  .navbar-inner{
+    max-width: 1180px; margin:0 auto;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 14px 20px;
+  }
+  .navbar .brand{
+    font-family:'Fraunces', serif; font-size: 18px; font-weight: 600; color:#fff;
+  }
+  .navbar .brand span{ color: var(--gold-light); }
+  .navtabs{ display:flex; gap: 4px; }
+  .navtabs button{
+    background: none; border: none; cursor:pointer;
+    font-family:'Inter',sans-serif; font-size: 12.5px; font-weight: 600;
+    letter-spacing: 0.3px;
+    color: rgba(255,255,255,0.62);
+    padding: 8px 14px; border-radius: 3px;
+    transition: all .15s;
+  }
+  .navtabs button:hover{ color:#fff; background: rgba(255,255,255,0.06); }
+  .navtabs button.active{ color: var(--ink); background: var(--gold-light); }
+  @media (max-width: 760px){
+    .navbar-inner{ flex-direction:column; gap:10px; align-items:flex-start; }
+    .navtabs{ flex-wrap:wrap; }
+  }
+
+  .page{ display:none; padding-top: 26px; }
+  .page.active{ display:block; }
+
+  .masthead{
+    display:flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 18px; margin-bottom: 22px; border-bottom: 1px solid var(--line);
+  }
+  .masthead .tag{
+    font-family:'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--text-muted);
+  }
+  .masthead h1{ font-family:'Fraunces', serif; font-size:22px; font-weight:600; margin:0; }
+
+  .grid{ display:grid; grid-template-columns: 380px 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 860px){ .grid{ grid-template-columns: 1fr; } }
+
+  /* ---------- INPUT CARD ---------- */
+  .card{ background: var(--paper-2); border-radius: 4px; border: 1px solid var(--line); padding: 26px 26px 22px; }
+  .card h2{
+    font-family:'Fraunces', serif; font-size: 16px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.8px; margin: 0 0 4px; color: var(--ink);
+  }
+  .card .sub{ font-size: 12.5px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5; }
+  .field{ margin-bottom: 16px; }
+  .field label{ display:block; font-size: 12px; font-weight: 600; color: var(--text-ink); margin-bottom: 6px; }
+  .field .hint{ font-size: 11px; color: var(--text-muted); margin-top: 5px; line-height: 1.4; }
+  .row2{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  input[type=number], select{
+    width: 100%; padding: 9px 11px; font-family: 'IBM Plex Mono', monospace; font-size: 13.5px;
+    border: 1px solid var(--line); border-radius: 3px; background: var(--paper); color: var(--text-ink);
+    outline: none; transition: border-color .15s;
+  }
+  select{ font-family:'Inter',sans-serif; font-size: 13px; cursor:pointer; }
+  input[type=number]:focus, select:focus{ border-color: var(--gold); background: #fff; }
+
+  .section-divider{ margin: 22px 0 16px; padding-top: 16px; border-top: 1px dashed var(--line); }
+  .section-label{
+    font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 12px;
+  }
+  .info-box{
+    background:#F2F6F4; border:1px solid #D6E6E0; border-radius:3px; padding:10px 12px; margin-bottom:16px;
+  }
+  .info-box p{ font-size:11.5px; color:var(--teal); line-height:1.5; margin:0; }
+
+  /* ---------- RESULT CARD ---------- */
+  .result{
+    background: linear-gradient(160deg, var(--ink) 0%, var(--ink-2) 100%);
+    color: #fff; border-radius: 4px; overflow: hidden; position: relative;
+  }
+  .result::before{
+    content:""; position:absolute; inset:0;
+    background: radial-gradient(600px 300px at 100% -10%, rgba(184,135,74,0.18), transparent 60%);
+    pointer-events:none;
+  }
+  .result-header{
+    background: var(--teal); padding: 10px 26px; font-family:'IBM Plex Mono', monospace;
+    font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; font-weight: 600;
+  }
+  .result-body{ padding: 26px 30px 10px; position:relative; }
+  .plan-title{ font-family:'Fraunces', serif; font-size: 22px; font-weight: 500; margin: 0 0 4px; color: #fff; }
+  .plan-title b{ color: var(--gold-light); font-weight: 600; }
+  .plan-sub{ margin:0 0 20px; font-size:11px; color:rgba(255,255,255,0.5); line-height:1.5; }
+
+  .band-label{
+    font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--gold-light); margin-bottom: 8px;
+  }
+  .band-numbers{ display:flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 6px; }
+  .band-numbers .num{ font-family:'Fraunces', serif; font-size: 40px; font-weight: 600; line-height: 1; }
+  .band-numbers .ate{ font-size: 13px; color: rgba(255,255,255,0.55); align-self: center; }
+  .band-sub{ font-size: 12.5px; color: rgba(255,255,255,0.65); margin-bottom: 22px; }
+
+  .gauge-wrap{ margin: 6px 0 26px; }
+  .gauge-track{
+    position: relative; height: 6px; border-radius: 4px;
+    background: linear-gradient(90deg, var(--teal), var(--gold) 55%, var(--brick));
+    margin: 30px 4px 8px;
+  }
+  .gauge-marker{
+    position:absolute; top: 50%; transform: translate(-50%,-50%);
+    width: 14px; height:14px; border-radius: 50%; background: #fff;
+    border: 3px solid var(--ink); box-shadow: 0 0 0 1px rgba(255,255,255,0.4);
+  }
+  .gauge-marker.rec{ width: 18px; height: 18px; background: var(--gold-light); border: 3px solid var(--ink); }
+  .gauge-tag{
+    position:absolute; top: -26px; transform: translateX(-50%);
+    font-family:'IBM Plex Mono', monospace; font-size: 10.5px; white-space: nowrap; color: rgba(255,255,255,0.75);
+  }
+  .gauge-tag b{ color:#fff; display:block; font-size: 12.5px; margin-top:1px; }
+  .gauge-ends{
+    display:flex; justify-content: space-between; font-size: 10.5px; color: rgba(255,255,255,0.45);
+    letter-spacing: 0.4px; padding: 0 2px;
+  }
+
+  .callout{
+    display:flex; gap: 12px; background: rgba(156,74,54,0.18); border: 1px solid rgba(156,74,54,0.4);
+    border-radius: 3px; padding: 12px 14px; font-size: 12px; line-height: 1.55;
+    color: rgba(255,255,255,0.88); margin-bottom: 22px;
+  }
+  .callout .ic{ font-size:15px; }
+  .callout b{ color: var(--gold-light); }
+
+  .stat-strip{ display:grid; grid-template-columns: 1fr 1fr 1fr; border-top: 1px solid var(--line-ink); position:relative; }
+  @media (max-width: 560px){ .stat-strip{ grid-template-columns: 1fr; } }
+  .stat{ padding: 16px 26px; border-right: 1px solid var(--line-ink); }
+  .stat:last-child{ border-right:none; }
+  .stat .l{ font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.6px; color: rgba(255,255,255,0.5); margin-bottom: 5px; }
+  .stat .v{ font-family:'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; color: #fff; }
+
+  .footnote{ font-size: 10.5px; color: var(--text-muted); line-height: 1.6; margin-top: 18px; padding: 0 2px; }
+
+  /* ---------- HOME / EXPLICAÇÕES ---------- */
+  .home-hero{
+    background: linear-gradient(160deg, var(--ink) 0%, var(--ink-2) 100%);
+    color:#fff; border-radius:4px; padding: 40px 36px; margin-bottom: 28px; position:relative; overflow:hidden;
+  }
+  .home-hero::before{
+    content:""; position:absolute; inset:0;
+    background: radial-gradient(700px 320px at 100% -10%, rgba(184,135,74,0.18), transparent 60%);
+  }
+  .home-hero h1{ font-family:'Fraunces', serif; font-size: 30px; font-weight:600; margin:0 0 12px; position:relative; }
+  .home-hero p{ font-size: 14px; line-height:1.7; color:rgba(255,255,255,0.75); max-width:640px; position:relative; }
+  .home-hero .ctas{ margin-top:22px; display:flex; gap:10px; flex-wrap:wrap; position:relative; }
+  .home-hero .cta{
+    background: var(--gold-light); color: var(--ink); font-weight:700; font-size:12.5px;
+    padding: 10px 18px; border-radius:3px; cursor:pointer; border:none;
+  }
+  .home-hero .cta.ghost{ background: transparent; color:#fff; border: 1px solid rgba(255,255,255,0.3); }
+
+  .explain-grid{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 30px; }
+  @media (max-width: 900px){ .explain-grid{ grid-template-columns: 1fr; } }
+  .explain-card{ background:#fff; border:1px solid var(--line); border-radius:4px; padding:22px; }
+  .explain-card .k{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--gold); letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+  .explain-card h3{ font-family:'Fraunces',serif; font-size:16px; margin:0 0 10px; }
+  .explain-card p{ font-size:12.5px; line-height:1.65; color:var(--text-muted); margin:0; }
+
+  .accordion{ background:#fff; border:1px solid var(--line); border-radius:4px; margin-bottom: 14px; overflow:hidden; }
+  .accordion-head{
+    padding: 16px 20px; display:flex; justify-content:space-between; align-items:center;
+    cursor:pointer; font-weight:600; font-size:13.5px; color:var(--ink);
+  }
+  .accordion-head .arrow{ transition: transform .2s; color:var(--gold); font-size:12px; }
+  .accordion.open .accordion-head .arrow{ transform: rotate(90deg); }
+  .accordion-body{ display:none; padding: 0 20px 18px; font-size:12.5px; line-height:1.7; color:var(--text-muted); }
+  .accordion.open .accordion-body{ display:block; }
+  .accordion-body table{ width:100%; border-collapse:collapse; margin-top:10px; font-size:12px; }
+  .accordion-body th{ text-align:left; background:var(--paper); padding:7px 10px; font-weight:600; color:var(--ink); }
+  .accordion-body td{ padding:7px 10px; border-top:1px solid var(--line); }
+
+  .prod-tags{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .prod-tag{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:3px 9px; border-radius:20px;
+    background: var(--paper); color: var(--ink); border:1px solid var(--line);
+  }
+
+  .table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+  /* ---------- RESPONSIVE (tablet) ---------- */
+  @media (max-width: 760px){
+    .wrap{ padding: 0 16px 48px; }
+    .home-hero{ padding: 30px 26px; }
+    .home-hero h1{ font-size: 24px; }
+    .band-numbers .num{ font-size: 32px; }
+  }
+
+  /* ---------- RESPONSIVE (mobile) ---------- */
+  @media (max-width: 640px){
+    .wrap{ padding: 0 14px 40px; }
+    .masthead{ flex-direction:column; align-items:flex-start; gap:6px; padding-bottom:14px; margin-bottom:18px; }
+    .masthead h1{ font-size:19px; }
+
+    .card{ padding: 20px 18px 18px; }
+    .card h2{ font-size:14px; }
+    .result-header{ padding: 9px 18px; }
+    .result-body{ padding: 20px 18px 6px; }
+
+    .plan-title{ font-size: 18px; }
+    .band-numbers{ gap:8px; }
+    .band-numbers .num{ font-size: 28px; }
+    .band-sub{ font-size:12px; }
+
+    .row2{ grid-template-columns: 1fr; gap:16px; }
+
+    .gauge-tag{ font-size:9px; }
+    .gauge-tag b{ font-size:11px; }
+    .gauge-wrap{ margin: 4px 0 22px; }
+    .gauge-track{ margin: 34px 10px 8px; }
+
+    .stat{ padding: 14px 18px; }
+    .stat .v{ font-size:13.5px; }
+
+    .home-hero{ padding: 26px 20px; }
+    .home-hero h1{ font-size: 21px; }
+    .home-hero p{ font-size: 13px; }
+    .home-hero .cta{ flex:1 1 auto; text-align:center; }
+
+    .explain-card{ padding:18px; }
+
+    /* prevent iOS Safari auto-zoom on focus (inputs/selects need >=16px) */
+    input[type=number], select{ font-size:16px; padding:10px 11px; }
+  }
+
+  @media (max-width: 400px){
+    .band-numbers{ flex-direction:column; align-items:flex-start; gap:2px; }
+    .band-numbers .ate{ display:none; }
+    .navtabs button{ padding:7px 10px; font-size:11.5px; }
+    .stat-strip{ grid-template-columns: 1fr; }
+    .stat{ border-right:none; border-bottom:1px solid var(--line-ink); }
+    .stat:last-child{ border-bottom:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="navbar-inner">
+    <div class="brand">Simulador de Renda<span>.</span></div>
+    <div class="navtabs">
+      <button data-page="home" class="active">Início &amp; Explicações</button>
+      <button data-page="ipca">IPCA+</button>
+      <button data-page="cdi">CDI</button>
+      <button data-page="pre">Prefixado</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ================= HOME / EXPLICAÇÕES ================= -->
+  <section id="page-home" class="page active">
+    <div class="home-hero">
+      <h1>Planejamento de renda, com os pés no chão</h1>
+      <p>Três simuladores — IPCA+, CDI e Prefixado — usam a mesma lógica de decaimento de taxa (teto → piso) para projetar
+      quanto seu cliente precisa investir por mês para viver da renda que deseja. Nada de taxa de hoje projetada para
+      sempre: as taxas de juro tendem a ciclos, e o simulador mostra isso com uma banda de cenários, não um número falso-preciso.</p>
+      <div class="ctas">
+        <button class="cta" onclick="goTo('ipca')">Simular IPCA+</button>
+        <button class="cta ghost" onclick="goTo('cdi')">Simular CDI</button>
+        <button class="cta ghost" onclick="goTo('pre')">Simular Prefixado</button>
+      </div>
+    </div>
+
+    <div class="explain-grid">
+      <div class="explain-card">
+        <div class="k">01 — Taxa Real (IPCA+)</div>
+        <h3>Tesouro IPCA+, CDBs e debêntures IPCA+</h3>
+        <p>A renda e o aporte são corrigidos pela inflação — então o IPCA se cancela na conta em termos reais. Só a taxa
+        real ("o X% do IPCA+X%") entra na fórmula.</p>
+        <div class="prod-tags"><span class="prod-tag">Tesouro IPCA+</span><span class="prod-tag">Renda+</span><span class="prod-tag">Debênture IPCA+</span></div>
+      </div>
+      <div class="explain-card">
+        <div class="k">02 — Taxa Nominal (CDI)</div>
+        <h3>CDBs, LCAs, LCIs, LCDs, CRAs e CRIs</h3>
+        <p>Quotados como "% do CDI" — uma taxa nominal. Aqui o IPCA <b>não</b> se cancela: precisamos de uma inflação
+        média esperada para converter em poder de compra real.</p>
+        <div class="prod-tags"><span class="prod-tag">CDB</span><span class="prod-tag">LCA</span><span class="prod-tag">LCI</span><span class="prod-tag">LCD</span><span class="prod-tag">CRA</span><span class="prod-tag">CRI</span></div>
+      </div>
+      <div class="explain-card">
+        <div class="k">03 — Taxa Prefixada</div>
+        <h3>Tesouro Prefixado, CDBs e debêntures prefixadas</h3>
+        <p>A taxa é travada no momento da compra — mas o nível de taxa disponível no mercado muda com o tempo (ciclo de
+        Selic). Também precisa de uma inflação esperada para o cálculo em termos reais.</p>
+        <div class="prod-tags"><span class="prod-tag">Tesouro Prefixado</span><span class="prod-tag">CDB Pré</span><span class="prod-tag">Debênture Pré</span></div>
+      </div>
+    </div>
+
+    <div class="accordion open">
+      <div class="accordion-head" onclick="toggleAcc(this)"><span>Como funciona o decaimento de taxa (teto → piso)?</span><span class="arrow">▶</span></div>
+      <div class="accordion-body">
+        <p>As taxas de juro brasileiras andam em ciclos — hoje podem estar altas (Selic/CDI elevados, prêmios de risco
+        maiores), mas ao longo de 10, 20, 30 anos de acumulação é pouco realista supor que a taxa de hoje se mantenha
+        constante. Cada simulador assume que a taxa relevante CAI DE FORMA LINEAR de um <b>teto</b> (o que está disponível
+        hoje) até um <b>piso</b> (o patamar estrutural de longo prazo), ao longo de um "prazo de convergência" que você
+        define. Depois de atingir o piso, a taxa permanece estável.</p>
+        <p>Em vez de projetar mês a mês, o modelo calcula a <b>taxa média efetiva</b> de cada fase (acumulação e desfrute)
+        a partir da área sob essa reta de decaimento — preservando fórmulas simples de valor futuro/presente, já com a
+        trajetória de queda embutida.</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-head" onclick="toggleAcc(this)"><span>Por que o simulador de IPCA+ não usa o IPCA, e os outros dois usam?</span><span class="arrow">▶</span></div>
+      <div class="accordion-body">
+        <p>Um título "IPCA+X%" já entrega, por construção, poder de compra constante: o principal e os juros são corrigidos
+        pela inflação, e o "X%" é a parcela de ganho real. Se a renda desejada e os aportes também crescem com a inflação,
+        o IPCA se cancela matematicamente na conta em termos reais — sobra só o X%.</p>
+        <p>Já CDI e Prefixado são taxas <b>nominais</b>: não têm a inflação embutida na indexação. Para saber quanto isso
+        vale em poder de compra (o que realmente importa para o cliente viver da renda), o simulador precisa descontar
+        uma inflação média esperada — por isso os dois pedem um "IPCA médio esperado" como premissa auxiliar.</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-head" onclick="toggleAcc(this)"><span>Tabela regressiva de Imposto de Renda — Renda Fixa</span><span class="arrow">▶</span></div>
+      <div class="accordion-body">
+        <div class="table-scroll">
+        <table>
+          <tr><th>Prazo da aplicação</th><th>Alíquota de IR</th></tr>
+          <tr><td>Até 180 dias</td><td>22,5%</td></tr>
+          <tr><td>De 181 a 360 dias</td><td>20,0%</td></tr>
+          <tr><td>De 361 a 720 dias</td><td>17,5%</td></tr>
+          <tr><td>Acima de 720 dias</td><td>15,0%</td></tr>
+        </table>
+        </div>
+        <p style="margin-top:10px;">Aplicável a produtos tributados pela tabela regressiva (CDB, LCD, Tesouro Direto, CRI/CRA
+        não incentivados, debêntures comuns). Produtos isentos de IR para pessoa física — LCI, LCA, CRI, CRA (agro/imobiliário
+        incentivados), debêntures incentivadas — não sofrem esse desconto.</p>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-head" onclick="toggleAcc(this)"><span>Por que meu número pode diferir do simulador oficial do banco/Tesouro?</span><span class="arrow">▶</span></div>
+      <div class="accordion-body">
+        <p>Estes simuladores usam uma <b>taxa média simplificada</b> para todo o horizonte, enquanto o simulador oficial de
+        cada instituição precifica um título específico com a curva de juros exata do dia, convenções de contagem de dias
+        e, no caso do Tesouro Renda+, vencimentos fixos disponíveis (múltiplos de 5 anos — o que este simulador também
+        reproduz na aba IPCA+). Diferenças de 5-10% na cotação exata são esperadas e não indicam erro — use estes
+        simuladores para <b>discussão de cenários</b> e o simulador oficial para uma <b>cotação exata de compra</b>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= IPCA+ ================= -->
+  <section id="page-ipca" class="page">
+    <div class="masthead">
+      <h1>Simulador IPCA+</h1>
+      <div class="tag">Taxa real — taxas com decaimento</div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h2>Parâmetros do Plano</h2>
+        <div class="sub">Preencha os dados do cliente para projetar a banda de aporte mensal.</div>
+
+        <div class="field">
+          <label for="i_modoIR">Modo de Simulação Tributária</label>
+          <select id="i_modoIR">
+            <option value="0.15">Líquido de IR — 15% (acima de 720 dias)</option>
+            <option value="0.175">Líquido de IR — 17,5% (361 a 720 dias)</option>
+            <option value="0.20">Líquido de IR — 20% (181 a 360 dias)</option>
+            <option value="0.225">Líquido de IR — 22,5% (até 180 dias)</option>
+            <option value="0">Isento de IR (LCI / LCA / CRI / CRA)</option>
+          </select>
+          <div class="hint">O modo líquido embute o desconto do IR, exigindo um aporte maior.</div>
+        </div>
+
+        <div class="field">
+          <label for="i_custodia">Custo de Custódia (Taxa Anual)</label>
+          <select id="i_custodia">
+            <option value="0">Isento 0,00% (benefício da assessoria / corretora)</option>
+            <option value="0.0020">B3 padrão 0,20% a.a.</option>
+            <option value="0.0025">Corretora 0,25% a.a.</option>
+          </select>
+        </div>
+
+        <div class="row2">
+          <div class="field"><label for="i_idadeAtual">Idade Atual</label><input type="number" id="i_idadeAtual" value="47"></div>
+          <div class="field"><label for="i_idadeAposent">Idade da Aposentadoria</label><input type="number" id="i_idadeAposent" value="65"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="i_rendaDesejada">Renda Extra Mensal (R$)</label><input type="number" id="i_rendaDesejada" value="8000" step="100"></div>
+          <div class="field"><label for="i_capitalInicial">Investimento Inicial (R$)</label><input type="number" id="i_capitalInicial" value="0" step="1000"></div>
+        </div>
+        <div class="field"><label for="i_prazoUsufruto">Tempo de Recebimento — Usufruto (anos)</label><input type="number" id="i_prazoUsufruto" value="20"></div>
+
+        <div class="section-divider"><div class="section-label">Parâmetros de Longo Prazo e Risco</div></div>
+        <div class="info-box"><p>Valores em termos reais (já líquidos de inflação) — é a parte "IPCA+X%" da taxa. Como a renda e o aporte
+        também são corrigidos pela inflação, o IPCA se cancela na conta e só o spread real importa.</p></div>
+
+        <div class="row2">
+          <div class="field"><label for="i_spreadTeto">Taxa Real Teto — IPCA+ Atual (% a.a.)</label><input type="number" id="i_spreadTeto" value="7.11" step="0.05"><div class="hint">Cenário otimista p/ o aporte.</div></div>
+          <div class="field"><label for="i_spreadPiso">Taxa Real Piso — IPCA+ Futuro (% a.a.)</label><input type="number" id="i_spreadPiso" value="3.0" step="0.05"><div class="hint">Cenário conservador (queda Selic).</div></div>
+        </div>
+        <div class="field"><label for="i_convergencia">Prazo de Convergência do Decaimento (anos)</label><input type="number" id="i_convergencia" value="8">
+        <div class="hint">Anos até a taxa real cair do teto até o piso; depois permanece estável.</div></div>
+      </div>
+
+      <div class="result">
+        <div class="result-header">Projeção do seu Aporte Mensal</div>
+        <div class="result-body">
+          <p class="plan-title">Plano de Aposentadoria <b id="i_outAno">2044</b></p>
+          <p class="plan-sub" id="i_vencimentoNota"></p>
+
+          <div class="band-label">Banda de aporte recomendada</div>
+          <div class="band-numbers"><span class="num" id="i_outMin">R$ 0</span><span class="ate">até</span><span class="num" id="i_outMax">R$ 0</span></div>
+          <div class="band-sub">/mês, para gerar uma renda de <b id="i_outRendaRef">R$ 0,00</b>/mês líquidos, ajustada pela inflação</div>
+
+          <div class="gauge-wrap">
+            <div class="gauge-track">
+              <div class="gauge-marker" id="i_markTeto" style="left:6%"><span class="gauge-tag">TETO<b id="i_tagTetoVal">—</b></span></div>
+              <div class="gauge-marker rec" id="i_markRec" style="left:50%"><span class="gauge-tag">RECOMENDADO<b id="i_tagRecVal">—</b></span></div>
+              <div class="gauge-marker" id="i_markPiso" style="left:94%"><span class="gauge-tag">PISO<b id="i_tagPisoVal">—</b></span></div>
+            </div>
+            <div class="gauge-ends"><span>menor aporte necessário</span><span>maior aporte necessário</span></div>
+          </div>
+
+          <div class="callout"><span class="ic">⚠</span><span><b>Estes são valores reais (dinheiro de hoje).</b> Para manter o poder de compra e o plano matemático intacto, o aporte deve ser reajustado anualmente de acordo com a inflação (IPCA) do período.</span></div>
+
+          <div class="stat-strip">
+            <div class="stat"><div class="l">Taxas Efetivas (Teto → Piso)</div><div class="v" id="i_statTaxas">IPCA + —</div></div>
+            <div class="stat"><div class="l">Prazo de Recebimento</div><div class="v" id="i_statPrazo">— anos</div></div>
+            <div class="stat"><div class="l">Renda Bruta Necessária</div><div class="v" id="i_statBruta">R$ —</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footnote">Simulação para fins comerciais e educativos. A banda de aporte considera dois cenários extremos — manutenção da taxa atual (Teto) e compressão total até a taxa estrutural (Piso) — e um cenário recomendado que pondera o decaimento linear entre as duas. O prazo de acumulação é arredondado ao vencimento disponível mais próximo (múltiplos de 5 anos, como o Tesouro Renda+). Rentabilidade passada não garante rentabilidade futura.</div>
+  </section>
+
+  <!-- ================= CDI ================= -->
+  <section id="page-cdi" class="page">
+    <div class="masthead">
+      <h1>Simulador CDI</h1>
+      <div class="tag">Taxa nominal — CDBs, LCAs, LCIs, LCDs, CRAs e CRIs</div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h2>Parâmetros do Plano</h2>
+        <div class="sub">Preencha os dados do cliente para projetar a banda de aporte mensal.</div>
+
+        <div class="field">
+          <label for="c_produto">Produto</label>
+          <select id="c_produto">
+            <option value="cdb" data-isento="0">CDB / LCD (tributável)</option>
+            <option value="lca" data-isento="1">LCA (isento de IR)</option>
+            <option value="lci" data-isento="1">LCI (isento de IR)</option>
+            <option value="cra" data-isento="1">CRA (isento de IR)</option>
+            <option value="cri" data-isento="1">CRI (isento de IR)</option>
+          </select>
+          <div class="hint">Produtos isentos zeram automaticamente o desconto de IR abaixo.</div>
+        </div>
+
+        <div class="field">
+          <label for="c_modoIR">Alíquota de IR (se tributável)</label>
+          <select id="c_modoIR">
+            <option value="0.15">15% (acima de 720 dias)</option>
+            <option value="0.175">17,5% (361 a 720 dias)</option>
+            <option value="0.20">20% (181 a 360 dias)</option>
+            <option value="0.225">22,5% (até 180 dias)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="c_custodia">Custo de Custódia (Taxa Anual)</label>
+          <select id="c_custodia">
+            <option value="0">Isento 0,00%</option>
+            <option value="0.0020">B3 padrão 0,20% a.a.</option>
+            <option value="0.0025">Corretora 0,25% a.a.</option>
+          </select>
+        </div>
+
+        <div class="row2">
+          <div class="field"><label for="c_idadeAtual">Idade Atual</label><input type="number" id="c_idadeAtual" value="47"></div>
+          <div class="field"><label for="c_idadeAposent">Idade da Aposentadoria</label><input type="number" id="c_idadeAposent" value="65"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="c_rendaDesejada">Renda Extra Mensal (R$)</label><input type="number" id="c_rendaDesejada" value="8000" step="100"></div>
+          <div class="field"><label for="c_capitalInicial">Investimento Inicial (R$)</label><input type="number" id="c_capitalInicial" value="0" step="1000"></div>
+        </div>
+        <div class="field"><label for="c_prazoUsufruto">Tempo de Recebimento — Usufruto (anos)</label><input type="number" id="c_prazoUsufruto" value="20"></div>
+
+        <div class="section-divider"><div class="section-label">Parâmetros de Longo Prazo e Risco</div></div>
+        <div class="info-box"><p>CDI é uma taxa <b>nominal</b> — não embute a inflação. Por isso, diferente do IPCA+, aqui
+        precisamos de uma inflação média esperada para converter o retorno em poder de compra real.</p></div>
+
+        <div class="row2">
+          <div class="field"><label for="c_cdiTeto">CDI Teto — Atual (% a.a.)</label><input type="number" id="c_cdiTeto" value="14.90" step="0.05"></div>
+          <div class="field"><label for="c_cdiPiso">CDI Piso — Longo Prazo (% a.a.)</label><input type="number" id="c_cdiPiso" value="8.00" step="0.05"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="c_pctTeto">% do CDI — Teto (hoje)</label><input type="number" id="c_pctTeto" value="115" step="1"></div>
+          <div class="field"><label for="c_pctPiso">% do CDI — Piso (longo prazo)</label><input type="number" id="c_pctPiso" value="100" step="1"></div>
+        </div>
+        <div class="field"><label for="c_convergencia">Prazo de Convergência do Decaimento (anos)</label><input type="number" id="c_convergencia" value="8">
+        <div class="hint">Anos até o CDI e o %CDI caírem do teto até o piso; depois permanecem estáveis.</div></div>
+        <div class="field"><label for="c_ipca">IPCA Médio Esperado (% a.a.)</label><input type="number" id="c_ipca" value="4.0" step="0.1">
+        <div class="hint">Usado só para converter a taxa nominal em poder de compra real.</div></div>
+      </div>
+
+      <div class="result">
+        <div class="result-header">Projeção do seu Aporte Mensal</div>
+        <div class="result-body">
+          <p class="plan-title">Plano de Aposentadoria <b id="c_outAno">2044</b></p>
+          <p class="plan-sub" id="c_vencimentoNota"></p>
+
+          <div class="band-label">Banda de aporte recomendada</div>
+          <div class="band-numbers"><span class="num" id="c_outMin">R$ 0</span><span class="ate">até</span><span class="num" id="c_outMax">R$ 0</span></div>
+          <div class="band-sub">/mês, para gerar uma renda de <b id="c_outRendaRef">R$ 0,00</b>/mês líquidos, ajustada pela inflação</div>
+
+          <div class="gauge-wrap">
+            <div class="gauge-track">
+              <div class="gauge-marker" id="c_markTeto" style="left:6%"><span class="gauge-tag">TETO<b id="c_tagTetoVal">—</b></span></div>
+              <div class="gauge-marker rec" id="c_markRec" style="left:50%"><span class="gauge-tag">RECOMENDADO<b id="c_tagRecVal">—</b></span></div>
+              <div class="gauge-marker" id="c_markPiso" style="left:94%"><span class="gauge-tag">PISO<b id="c_tagPisoVal">—</b></span></div>
+            </div>
+            <div class="gauge-ends"><span>menor aporte necessário</span><span>maior aporte necessário</span></div>
+          </div>
+
+          <div class="callout"><span class="ic">⚠</span><span><b>Estes são valores reais (dinheiro de hoje).</b> O aporte deve ser reajustado anualmente pela inflação. O CDI é nominal — a conversão para poder de compra usa o IPCA médio esperado informado.</span></div>
+
+          <div class="stat-strip">
+            <div class="stat"><div class="l">CDI Efetivo (Teto → Piso)</div><div class="v" id="c_statCDI">—</div></div>
+            <div class="stat"><div class="l">% do CDI (Teto → Piso)</div><div class="v" id="c_statPct">—</div></div>
+            <div class="stat"><div class="l">Renda Bruta Necessária</div><div class="v" id="c_statBruta">R$ —</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footnote">Simulação para fins comerciais e educativos. O CDI e o %CDI decaem de forma independente (teto→piso) ao longo do prazo de convergência. Diferente do IPCA+, a taxa é nominal, por isso o IPCA médio esperado é necessário para expressar os valores em poder de compra real. Rentabilidade passada não garante rentabilidade futura.</div>
+  </section>
+
+  <!-- ================= PREFIXADO ================= -->
+  <section id="page-pre" class="page">
+    <div class="masthead">
+      <h1>Simulador Prefixado</h1>
+      <div class="tag">Taxa nominal travada na compra — Tesouro Prefixado, CDBs e debêntures pré</div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h2>Parâmetros do Plano</h2>
+        <div class="sub">Preencha os dados do cliente para projetar a banda de aporte mensal.</div>
+
+        <div class="field">
+          <label for="p_modoIR">Modo de Simulação Tributária</label>
+          <select id="p_modoIR">
+            <option value="0.15">Líquido de IR — 15% (acima de 720 dias)</option>
+            <option value="0.175">Líquido de IR — 17,5% (361 a 720 dias)</option>
+            <option value="0.20">Líquido de IR — 20% (181 a 360 dias)</option>
+            <option value="0.225">Líquido de IR — 22,5% (até 180 dias)</option>
+            <option value="0">Isento de IR</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="p_custodia">Custo de Custódia (Taxa Anual)</label>
+          <select id="p_custodia">
+            <option value="0">Isento 0,00%</option>
+            <option value="0.0020">B3 padrão 0,20% a.a.</option>
+            <option value="0.0025">Corretora 0,25% a.a.</option>
+          </select>
+        </div>
+
+        <div class="row2">
+          <div class="field"><label for="p_idadeAtual">Idade Atual</label><input type="number" id="p_idadeAtual" value="47"></div>
+          <div class="field"><label for="p_idadeAposent">Idade da Aposentadoria</label><input type="number" id="p_idadeAposent" value="65"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="p_rendaDesejada">Renda Extra Mensal (R$)</label><input type="number" id="p_rendaDesejada" value="8000" step="100"></div>
+          <div class="field"><label for="p_capitalInicial">Investimento Inicial (R$)</label><input type="number" id="p_capitalInicial" value="0" step="1000"></div>
+        </div>
+        <div class="field"><label for="p_prazoUsufruto">Tempo de Recebimento — Usufruto (anos)</label><input type="number" id="p_prazoUsufruto" value="20"></div>
+
+        <div class="section-divider"><div class="section-label">Parâmetros de Longo Prazo e Risco</div></div>
+        <div class="info-box"><p>A taxa prefixada é travada na compra, mas o <b>nível</b> disponível no mercado muda com o
+        ciclo de juros. É também uma taxa nominal — precisa do IPCA médio esperado para o cálculo em termos reais.</p></div>
+
+        <div class="row2">
+          <div class="field"><label for="p_preTeto">Prefixado Teto — Atual (% a.a.)</label><input type="number" id="p_preTeto" value="13.50" step="0.05"><div class="hint">Cenário otimista p/ o aporte.</div></div>
+          <div class="field"><label for="p_prePiso">Prefixado Piso — Longo Prazo (% a.a.)</label><input type="number" id="p_prePiso" value="9.00" step="0.05"><div class="hint">Cenário conservador (queda Selic).</div></div>
+        </div>
+        <div class="field"><label for="p_convergencia">Prazo de Convergência do Decaimento (anos)</label><input type="number" id="p_convergencia" value="8">
+        <div class="hint">Anos até a taxa prefixada cair do teto até o piso; depois permanece estável.</div></div>
+        <div class="field"><label for="p_ipca">IPCA Médio Esperado (% a.a.)</label><input type="number" id="p_ipca" value="4.0" step="0.1">
+        <div class="hint">Usado só para converter a taxa nominal em poder de compra real.</div></div>
+      </div>
+
+      <div class="result">
+        <div class="result-header">Projeção do seu Aporte Mensal</div>
+        <div class="result-body">
+          <p class="plan-title">Plano de Aposentadoria <b id="p_outAno">2044</b></p>
+          <p class="plan-sub" id="p_vencimentoNota"></p>
+
+          <div class="band-label">Banda de aporte recomendada</div>
+          <div class="band-numbers"><span class="num" id="p_outMin">R$ 0</span><span class="ate">até</span><span class="num" id="p_outMax">R$ 0</span></div>
+          <div class="band-sub">/mês, para gerar uma renda de <b id="p_outRendaRef">R$ 0,00</b>/mês líquidos, ajustada pela inflação</div>
+
+          <div class="gauge-wrap">
+            <div class="gauge-track">
+              <div class="gauge-marker" id="p_markTeto" style="left:6%"><span class="gauge-tag">TETO<b id="p_tagTetoVal">—</b></span></div>
+              <div class="gauge-marker rec" id="p_markRec" style="left:50%"><span class="gauge-tag">RECOMENDADO<b id="p_tagRecVal">—</b></span></div>
+              <div class="gauge-marker" id="p_markPiso" style="left:94%"><span class="gauge-tag">PISO<b id="p_tagPisoVal">—</b></span></div>
+            </div>
+            <div class="gauge-ends"><span>menor aporte necessário</span><span>maior aporte necessário</span></div>
+          </div>
+
+          <div class="callout"><span class="ic">⚠</span><span><b>Estes são valores reais (dinheiro de hoje).</b> O aporte deve ser reajustado anualmente pela inflação. A taxa prefixada é nominal — a conversão usa o IPCA médio esperado informado.</span></div>
+
+          <div class="stat-strip">
+            <div class="stat"><div class="l">Taxa Pré Efetiva (Teto → Piso)</div><div class="v" id="p_statPre">—</div></div>
+            <div class="stat"><div class="l">Prazo de Recebimento</div><div class="v" id="p_statPrazo">— anos</div></div>
+            <div class="stat"><div class="l">Renda Bruta Necessária</div><div class="v" id="p_statBruta">R$ —</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footnote">Simulação para fins comerciais e educativos. A taxa prefixada decai de teto para piso ao longo do prazo de convergência. Sendo nominal, o IPCA médio esperado converte os valores em poder de compra real. Rentabilidade passada não garante rentabilidade futura.</div>
+  </section>
+
+</div>
+
+<script>
+/* ============ NAV / ACCORDION ============ */
+function goTo(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.navtabs button').forEach(b=>b.classList.toggle('active', b.dataset.page===page));
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+document.querySelectorAll('.navtabs button').forEach(b=>b.addEventListener('click', ()=>goTo(b.dataset.page)));
+function toggleAcc(el){ el.parentElement.classList.toggle('open'); }
+
+/* ============ SHARED CALC ENGINE ============ */
+function fmtBRL(v){
+  if(!isFinite(v)) return "—";
+  const neg = v < 0;
+  const s = Math.abs(v).toLocaleString('pt-BR', {minimumFractionDigits:0, maximumFractionDigits:0});
+  return (neg? "−R$ " : "R$ ") + s;
+}
+function fmtPct(v){ return (v*100).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + "%"; }
+
+function G(x, teto, piso, D){
+  if(x <= D){ return teto*x - (teto-piso)*x*x/(2*D); }
+  return D*(teto+piso)/2 + piso*(x-D);
+}
+function avgAccum(x, teto, piso, D){ if(x<=0) return teto; return G(x,teto,piso,D)/x; }
+function avgDesfrute(x, n2, teto, piso, D){ if(n2<=0) return piso; return (G(x+n2,teto,piso,D)-G(x,teto,piso,D))/n2; }
+function tmFromAnnual(annual){ return Math.pow(1+annual, 1/12) - 1; }
+function capitalNecessario(rendaBruta, tm, n2meses){
+  if(Math.abs(tm) < 1e-9) return rendaBruta*n2meses;
+  return rendaBruta*(1-Math.pow(1+tm,-n2meses))/tm;
+}
+function aporteNecessario(capitalAlvo, capitalIni, tm, n1meses){
+  if(Math.abs(tm) < 1e-9) return (capitalAlvo - capitalIni)/n1meses;
+  return (capitalAlvo - capitalIni*Math.pow(1+tm,n1meses)) * tm / (Math.pow(1+tm,n1meses)-1);
+}
+function vencimentoAjustado(idadeAtual, idadeAposent, anoAtual){
+  const n1bruto = Math.max(idadeAposent - idadeAtual, 0.1);
+  const anoAlvo = anoAtual + n1bruto;
+  let anoVenc = Math.floor(anoAlvo/5)*5;
+  if(anoVenc <= anoAtual) anoVenc = Math.ceil(anoAlvo/5)*5;
+  return {n1anosBruto: n1bruto, anoVenc, n1anos: anoVenc-anoAtual};
+}
+function gaugePositions(lo, hi, teto, rec, piso){
+  const span = Math.max(hi-lo, 1e-6);
+  const posOf = v => 4 + 92*((v-lo)/span);
+  return {teto: posOf(teto), rec: posOf(rec), piso: posOf(piso)};
+}
+
+/* ============ IPCA+ TAB ============ */
+function calcAporteIPCA(realVal, isFlat, p){
+  const {spreadTeto, spreadPiso, D, n1anos, n2anos, custodia, rendaBruta, capitalIni} = p;
+  let tmAccum, tmDesf;
+  if(isFlat){
+    const tm = tmFromAnnual(realVal - custodia);
+    tmAccum = tm; tmDesf = tm;
+  } else {
+    tmAccum = tmFromAnnual(avgAccum(n1anos, spreadTeto, spreadPiso, D) - custodia);
+    tmDesf  = tmFromAnnual(avgDesfrute(n1anos, n2anos, spreadTeto, spreadPiso, D) - custodia);
+  }
+  const n1m=n1anos*12, n2m=n2anos*12;
+  const capAlvo = capitalNecessario(rendaBruta, tmDesf, n2m);
+  return aporteNecessario(capAlvo, capitalIni, tmAccum, n1m);
+}
+function recalcIPCA(){
+  const idadeAtual = parseFloat(document.getElementById('i_idadeAtual').value)||0;
+  const idadeAposent = parseFloat(document.getElementById('i_idadeAposent').value)||0;
+  const rendaDesejada = parseFloat(document.getElementById('i_rendaDesejada').value)||0;
+  const capitalIni = parseFloat(document.getElementById('i_capitalInicial').value)||0;
+  const n2anos = parseFloat(document.getElementById('i_prazoUsufruto').value)||1;
+  const spreadTeto = (parseFloat(document.getElementById('i_spreadTeto').value)||0)/100;
+  const spreadPiso = (parseFloat(document.getElementById('i_spreadPiso').value)||0)/100;
+  const D = Math.max(parseFloat(document.getElementById('i_convergencia').value)||1, 0.01);
+  const custodia = parseFloat(document.getElementById('i_custodia').value)||0;
+  const aliquotaIR = parseFloat(document.getElementById('i_modoIR').value)||0;
+  const anoAtual = 2026;
+
+  const {n1anosBruto, anoVenc, n1anos} = vencimentoAjustado(idadeAtual, idadeAposent, anoAtual);
+  const rendaBruta = aliquotaIR>0 ? rendaDesejada/(1-aliquotaIR) : rendaDesejada;
+  const p = {spreadTeto, spreadPiso, D, n1anos, n2anos, custodia, rendaBruta, capitalIni};
+
+  const aporteTeto = calcAporteIPCA(spreadTeto, true, p);
+  const aportePiso = calcAporteIPCA(spreadPiso, true, p);
+  const aporteRec  = calcAporteIPCA(null, false, p);
+  const lo = Math.max(Math.min(aporteTeto,aportePiso,aporteRec),0);
+  const hi = Math.max(aporteTeto,aportePiso,aporteRec,0);
+
+  document.getElementById('i_outAno').textContent = anoVenc;
+  const nota = document.getElementById('i_vencimentoNota');
+  nota.textContent = Math.round(n1anosBruto)!==n1anos
+    ? `Vencimento disponível mais próximo (Tesouro Renda+: múltiplos de 5 anos) — prazo ajustado de ${Math.round(n1anosBruto)} para ${n1anos} anos.`
+    : `Prazo de acumulação: ${n1anos} anos (coincide com um vencimento disponível).`;
+  document.getElementById('i_outMin').textContent = fmtBRL(lo);
+  document.getElementById('i_outMax').textContent = fmtBRL(hi);
+  document.getElementById('i_outRendaRef').textContent = fmtBRL(rendaDesejada);
+  document.getElementById('i_statTaxas').textContent = "IPCA + " + fmtPct(spreadPiso) + " a " + fmtPct(spreadTeto);
+  document.getElementById('i_statPrazo').textContent = n2anos + " anos";
+  document.getElementById('i_statBruta').textContent = fmtBRL(rendaBruta) + "/mês";
+
+  const pos = gaugePositions(lo,hi,aporteTeto,aporteRec,aportePiso);
+  document.getElementById('i_markTeto').style.left = pos.teto+"%";
+  document.getElementById('i_markRec').style.left = pos.rec+"%";
+  document.getElementById('i_markPiso').style.left = pos.piso+"%";
+  document.getElementById('i_tagTetoVal').textContent = fmtBRL(aporteTeto);
+  document.getElementById('i_tagRecVal').textContent = fmtBRL(aporteRec);
+  document.getElementById('i_tagPisoVal').textContent = fmtBRL(aportePiso);
+}
+
+/* ============ CDI TAB ============ */
+function calcAporteCDI(cdiVal, pctVal, isFlat, p){
+  const {cdiTeto, cdiPiso, pctTeto, pctPiso, D, n1anos, n2anos, custodia, ipca, rendaBruta, capitalIni} = p;
+  let nomA, nomD;
+  if(isFlat){
+    const nom = cdiVal * (pctVal/100) - custodia;
+    nomA = nom; nomD = nom;
+  } else {
+    const cdiA = avgAccum(n1anos, cdiTeto, cdiPiso, D);
+    const pctA = avgAccum(n1anos, pctTeto, pctPiso, D);
+    nomA = cdiA*(pctA/100) - custodia;
+    const cdiD = avgDesfrute(n1anos, n2anos, cdiTeto, cdiPiso, D);
+    const pctD = avgDesfrute(n1anos, n2anos, pctTeto, pctPiso, D);
+    nomD = cdiD*(pctD/100) - custodia;
+  }
+  const realA = (1+nomA)/(1+ipca) - 1;
+  const realD = (1+nomD)/(1+ipca) - 1;
+  const tmAccum = tmFromAnnual(realA);
+  const tmDesf  = tmFromAnnual(realD);
+  const n1m=n1anos*12, n2m=n2anos*12;
+  const capAlvo = capitalNecessario(rendaBruta, tmDesf, n2m);
+  return aporteNecessario(capAlvo, capitalIni, tmAccum, n1m);
+}
+function recalcCDI(){
+  const idadeAtual = parseFloat(document.getElementById('c_idadeAtual').value)||0;
+  const idadeAposent = parseFloat(document.getElementById('c_idadeAposent').value)||0;
+  const rendaDesejada = parseFloat(document.getElementById('c_rendaDesejada').value)||0;
+  const capitalIni = parseFloat(document.getElementById('c_capitalInicial').value)||0;
+  const n2anos = parseFloat(document.getElementById('c_prazoUsufruto').value)||1;
+  const cdiTeto = (parseFloat(document.getElementById('c_cdiTeto').value)||0)/100;
+  const cdiPiso = (parseFloat(document.getElementById('c_cdiPiso').value)||0)/100;
+  const pctTeto = parseFloat(document.getElementById('c_pctTeto').value)||0;
+  const pctPiso = parseFloat(document.getElementById('c_pctPiso').value)||0;
+  const D = Math.max(parseFloat(document.getElementById('c_convergencia').value)||1, 0.01);
+  const custodia = parseFloat(document.getElementById('c_custodia').value)||0;
+  const ipca = (parseFloat(document.getElementById('c_ipca').value)||0)/100;
+  const isento = document.getElementById('c_produto').selectedOptions[0].dataset.isento === "1";
+  const aliquotaIR = isento ? 0 : (parseFloat(document.getElementById('c_modoIR').value)||0);
+  document.getElementById('c_modoIR').disabled = isento;
+  const anoAtual = 2026;
+
+  const {n1anosBruto, anoVenc, n1anos} = vencimentoAjustado(idadeAtual, idadeAposent, anoAtual);
+  const rendaBruta = aliquotaIR>0 ? rendaDesejada/(1-aliquotaIR) : rendaDesejada;
+  const p = {cdiTeto,cdiPiso,pctTeto,pctPiso,D,n1anos,n2anos,custodia,ipca,rendaBruta,capitalIni};
+
+  const aporteTeto = calcAporteCDI(cdiTeto, pctTeto, true, p);
+  const aportePiso = calcAporteCDI(cdiPiso, pctPiso, true, p);
+  const aporteRec  = calcAporteCDI(null, null, false, p);
+  const lo = Math.max(Math.min(aporteTeto,aportePiso,aporteRec),0);
+  const hi = Math.max(aporteTeto,aportePiso,aporteRec,0);
+
+  document.getElementById('c_outAno').textContent = anoVenc;
+  document.getElementById('c_vencimentoNota').textContent =
+    `Prazo de acumulação: ${n1anos} anos. Produtos bancários não têm vencimento fixo em grade — este é o prazo literal informado.`;
+  document.getElementById('c_outMin').textContent = fmtBRL(lo);
+  document.getElementById('c_outMax').textContent = fmtBRL(hi);
+  document.getElementById('c_outRendaRef').textContent = fmtBRL(rendaDesejada);
+  document.getElementById('c_statCDI').textContent = fmtPct(cdiPiso)+" a "+fmtPct(cdiTeto);
+  document.getElementById('c_statPct').textContent = pctPiso+"% a "+pctTeto+"%";
+  document.getElementById('c_statBruta').textContent = fmtBRL(rendaBruta)+"/mês";
+
+  const pos = gaugePositions(lo,hi,aporteTeto,aporteRec,aportePiso);
+  document.getElementById('c_markTeto').style.left = pos.teto+"%";
+  document.getElementById('c_markRec').style.left = pos.rec+"%";
+  document.getElementById('c_markPiso').style.left = pos.piso+"%";
+  document.getElementById('c_tagTetoVal').textContent = fmtBRL(aporteTeto);
+  document.getElementById('c_tagRecVal').textContent = fmtBRL(aporteRec);
+  document.getElementById('c_tagPisoVal').textContent = fmtBRL(aportePiso);
+}
+
+/* ============ PREFIXADO TAB ============ */
+function calcAportePRE(preVal, isFlat, p){
+  const {preTeto, prePiso, D, n1anos, n2anos, custodia, ipca, rendaBruta, capitalIni} = p;
+  let nomA, nomD;
+  if(isFlat){
+    const nom = preVal - custodia;
+    nomA = nom; nomD = nom;
+  } else {
+    nomA = avgAccum(n1anos, preTeto, prePiso, D) - custodia;
+    nomD = avgDesfrute(n1anos, n2anos, preTeto, prePiso, D) - custodia;
+  }
+  const realA = (1+nomA)/(1+ipca) - 1;
+  const realD = (1+nomD)/(1+ipca) - 1;
+  const tmAccum = tmFromAnnual(realA);
+  const tmDesf  = tmFromAnnual(realD);
+  const n1m=n1anos*12, n2m=n2anos*12;
+  const capAlvo = capitalNecessario(rendaBruta, tmDesf, n2m);
+  return aporteNecessario(capAlvo, capitalIni, tmAccum, n1m);
+}
+function recalcPRE(){
+  const idadeAtual = parseFloat(document.getElementById('p_idadeAtual').value)||0;
+  const idadeAposent = parseFloat(document.getElementById('p_idadeAposent').value)||0;
+  const rendaDesejada = parseFloat(document.getElementById('p_rendaDesejada').value)||0;
+  const capitalIni = parseFloat(document.getElementById('p_capitalInicial').value)||0;
+  const n2anos = parseFloat(document.getElementById('p_prazoUsufruto').value)||1;
+  const preTeto = (parseFloat(document.getElementById('p_preTeto').value)||0)/100;
+  const prePiso = (parseFloat(document.getElementById('p_prePiso').value)||0)/100;
+  const D = Math.max(parseFloat(document.getElementById('p_convergencia').value)||1, 0.01);
+  const custodia = parseFloat(document.getElementById('p_custodia').value)||0;
+  const ipca = (parseFloat(document.getElementById('p_ipca').value)||0)/100;
+  const aliquotaIR = parseFloat(document.getElementById('p_modoIR').value)||0;
+  const anoAtual = 2026;
+
+  const {n1anosBruto, anoVenc, n1anos} = vencimentoAjustado(idadeAtual, idadeAposent, anoAtual);
+  const rendaBruta = aliquotaIR>0 ? rendaDesejada/(1-aliquotaIR) : rendaDesejada;
+  const p = {preTeto,prePiso,D,n1anos,n2anos,custodia,ipca,rendaBruta,capitalIni};
+
+  const aporteTeto = calcAportePRE(preTeto, true, p);
+  const aportePiso = calcAportePRE(prePiso, true, p);
+  const aporteRec  = calcAportePRE(null, false, p);
+  const lo = Math.max(Math.min(aporteTeto,aportePiso,aporteRec),0);
+  const hi = Math.max(aporteTeto,aportePiso,aporteRec,0);
+
+  document.getElementById('p_outAno').textContent = anoVenc;
+  document.getElementById('p_vencimentoNota').textContent =
+    `Prazo de acumulação: ${n1anos} anos (Tesouro Prefixado também segue vencimentos fixos; ajuste manualmente se necessário).`;
+  document.getElementById('p_outMin').textContent = fmtBRL(lo);
+  document.getElementById('p_outMax').textContent = fmtBRL(hi);
+  document.getElementById('p_outRendaRef').textContent = fmtBRL(rendaDesejada);
+  document.getElementById('p_statPre').textContent = fmtPct(prePiso)+" a "+fmtPct(preTeto);
+  document.getElementById('p_statPrazo').textContent = n2anos+" anos";
+  document.getElementById('p_statBruta').textContent = fmtBRL(rendaBruta)+"/mês";
+
+  const pos = gaugePositions(lo,hi,aporteTeto,aporteRec,aportePiso);
+  document.getElementById('p_markTeto').style.left = pos.teto+"%";
+  document.getElementById('p_markRec').style.left = pos.rec+"%";
+  document.getElementById('p_markPiso').style.left = pos.piso+"%";
+  document.getElementById('p_tagTetoVal').textContent = fmtBRL(aporteTeto);
+  document.getElementById('p_tagRecVal').textContent = fmtBRL(aporteRec);
+  document.getElementById('p_tagPisoVal').textContent = fmtBRL(aportePiso);
+}
+
+document.querySelectorAll('#page-ipca input, #page-ipca select').forEach(el=>el.addEventListener('input', recalcIPCA));
+document.querySelectorAll('#page-cdi input, #page-cdi select').forEach(el=>el.addEventListener('input', recalcCDI));
+document.querySelectorAll('#page-pre input, #page-pre select').forEach(el=>el.addEventListener('input', recalcPRE));
+
+recalcIPCA(); recalcCDI(); recalcPRE();
+</script>
+</body>
+</html>
