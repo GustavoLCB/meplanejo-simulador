@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simulador de Renda — Plataforma de Planejamento</title>
+<title>Simulador de Renda — Prazo Livre</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -405,7 +405,7 @@
       <button data-page="glossario">Glossário</button>
       <button data-page="contato">Contato</button>
     </div>
-    <a class="cross-link" href="prazo-livre.html">Prazo Livre ↗</a>
+    <a class="cross-link" href="index.html">Tesouro Renda+ ↗</a>
   </div>
 </div>
 
@@ -498,9 +498,10 @@
       <div class="accordion-body">
         <p>Estes simuladores usam uma <b>taxa média simplificada</b> para todo o horizonte, enquanto o simulador oficial de
         cada instituição precifica um título específico com a curva de juros exata do dia, convenções de contagem de dias
-        e, no caso do Tesouro Renda+, vencimentos fixos disponíveis (múltiplos de 5 anos — o que este simulador também
-        reproduz na aba IPCA+). Diferenças de 5-10% na cotação exata são esperadas e não indicam erro — use estes
-        simuladores para <b>discussão de cenários</b> e o simulador oficial para uma <b>cotação exata de compra</b>.</p>
+        e, no caso do Tesouro Renda+, vencimentos fixos disponíveis (múltiplos de 5 anos). Este simulador usa sempre o
+        prazo exato informado, sem arredondar a nenhum vencimento específico. Diferenças de 5-10% na cotação exata são
+        esperadas e não indicam erro — use estes simuladores para <b>discussão de cenários</b> e o simulador oficial
+        para uma <b>cotação exata de compra</b>.</p>
       </div>
     </div>
   </section>
@@ -598,7 +599,7 @@
       </div>
       <div class="chart-wrap"><canvas id="i_chart"></canvas></div>
     </div>
-    <div class="footnote">Simulação para fins comerciais e educativos. A banda de aporte considera dois cenários extremos — manutenção da taxa atual (Teto) e compressão total até a taxa estrutural (Piso) — e um cenário recomendado que pondera o decaimento linear entre as duas. O prazo de acumulação é arredondado ao vencimento disponível mais próximo (múltiplos de 5 anos, como o Tesouro Renda+). Rentabilidade passada não garante rentabilidade futura.</div>
+    <div class="footnote">Simulação para fins comerciais e educativos. A banda de aporte considera dois cenários extremos — manutenção da taxa atual (Teto) e compressão total até a taxa estrutural (Piso) — e um cenário recomendado que pondera o decaimento linear entre as duas. O prazo de acumulação usado é exatamente o informado (idade da aposentadoria menos idade atual), sem vínculo com vencimentos de nenhum título específico. Rentabilidade passada não garante rentabilidade futura.</div>
   </section>
 
   <!-- ================= CDI ================= -->
@@ -1005,12 +1006,10 @@ function aporteNecessario(capitalAlvo, capitalIni, tm, n1meses){
   if(Math.abs(tm) < 1e-9) return (capitalAlvo - capitalIni)/n1meses;
   return (capitalAlvo - capitalIni*Math.pow(1+tm,n1meses)) * tm / (Math.pow(1+tm,n1meses)-1);
 }
-function vencimentoAjustado(idadeAtual, idadeAposent, anoAtual){
-  const n1bruto = Math.max(idadeAposent - idadeAtual, 0.1);
-  const anoAlvo = anoAtual + n1bruto;
-  let anoVenc = Math.floor(anoAlvo/5)*5;
-  if(anoVenc <= anoAtual) anoVenc = Math.ceil(anoAlvo/5)*5;
-  return {n1anosBruto: n1bruto, anoVenc, n1anos: anoVenc-anoAtual};
+function prazoAcumulacao(idadeAtual, idadeAposent, anoAtual){
+  const n1anos = Math.max(idadeAposent - idadeAtual, 0.1);
+  const anoAlvo = anoAtual + n1anos;
+  return {anoAlvo, n1anos};
 }
 function gaugePositions(lo, hi, teto, rec, piso){
   const span = Math.max(hi-lo, 1e-6);
@@ -1115,7 +1114,7 @@ function recalcIPCA(){
   const aliquotaIR = parseFloat(document.getElementById('i_modoIR').value)||0;
   const anoAtual = 2026;
 
-  const {n1anosBruto, anoVenc, n1anos} = vencimentoAjustado(idadeAtual, idadeAposent, anoAtual);
+  const {anoAlvo, n1anos} = prazoAcumulacao(idadeAtual, idadeAposent, anoAtual);
   const rendaBruta = aliquotaIR>0 ? rendaDesejada/(1-aliquotaIR) : rendaDesejada;
   const p = {spreadTeto, spreadPiso, D, n1anos, n2anos, custodia, rendaBruta, capitalIni};
 
@@ -1125,11 +1124,8 @@ function recalcIPCA(){
   const lo = Math.max(Math.min(aporteTeto,aportePiso,aporteRec),0);
   const hi = Math.max(aporteTeto,aportePiso,aporteRec,0);
 
-  document.getElementById('i_outAno').textContent = anoVenc;
-  const nota = document.getElementById('i_vencimentoNota');
-  nota.textContent = Math.round(n1anosBruto)!==n1anos
-    ? `Vencimento disponível mais próximo (Tesouro Renda+: múltiplos de 5 anos) — prazo ajustado de ${Math.round(n1anosBruto)} para ${n1anos} anos.`
-    : `Prazo de acumulação: ${n1anos} anos (coincide com um vencimento disponível).`;
+  document.getElementById('i_outAno').textContent = Math.round(anoAlvo);
+  document.getElementById('i_vencimentoNota').textContent = `Prazo de acumulação: ${n1anos.toFixed(1)} anos.`;
   document.getElementById('i_outMin').textContent = fmtBRL(lo);
   document.getElementById('i_outMax').textContent = fmtBRL(hi);
   document.getElementById('i_outRendaRef').textContent = fmtBRL(rendaDesejada);
@@ -1198,7 +1194,7 @@ function recalcCDI(){
   document.getElementById('c_modoIR').disabled = isento;
   const anoAtual = 2026;
 
-  const {n1anosBruto, anoVenc, n1anos} = vencimentoAjustado(idadeAtual, idadeAposent, anoAtual);
+  const {anoAlvo, n1anos} = prazoAcumulacao(idadeAtual, idadeAposent, anoAtual);
   const rendaBruta = aliquotaIR>0 ? rendaDesejada/(1-aliquotaIR) : rendaDesejada;
   const p = {cdiTeto,cdiPiso,pctTeto,pctPiso,D,n1anos,n2anos,custodia,ipca,rendaBruta,capitalIni};
 
@@ -1208,9 +1204,8 @@ function recalcCDI(){
   const lo = Math.max(Math.min(aporteTeto,aportePiso,aporteRec),0);
   const hi = Math.max(aporteTeto,aportePiso,aporteRec,0);
 
-  document.getElementById('c_outAno').textContent = anoVenc;
-  document.getElementById('c_vencimentoNota').textContent =
-    `Prazo de acumulação: ${n1anos} anos. Produtos bancários não têm vencimento fixo em grade — este é o prazo literal informado.`;
+  document.getElementById('c_outAno').textContent = Math.round(anoAlvo);
+  document.getElementById('c_vencimentoNota').textContent = `Prazo de acumulação: ${n1anos.toFixed(1)} anos.`;
   document.getElementById('c_outMin').textContent = fmtBRL(lo);
   document.getElementById('c_outMax').textContent = fmtBRL(hi);
   document.getElementById('c_outRendaRef').textContent = fmtBRL(rendaDesejada);
@@ -1281,7 +1276,7 @@ function recalcPRE(){
   const aliquotaIR = parseFloat(document.getElementById('p_modoIR').value)||0;
   const anoAtual = 2026;
 
-  const {n1anosBruto, anoVenc, n1anos} = vencimentoAjustado(idadeAtual, idadeAposent, anoAtual);
+  const {anoAlvo, n1anos} = prazoAcumulacao(idadeAtual, idadeAposent, anoAtual);
   const rendaBruta = aliquotaIR>0 ? rendaDesejada/(1-aliquotaIR) : rendaDesejada;
   const p = {preTeto,prePiso,D,n1anos,n2anos,custodia,ipca,rendaBruta,capitalIni};
 
@@ -1291,9 +1286,8 @@ function recalcPRE(){
   const lo = Math.max(Math.min(aporteTeto,aportePiso,aporteRec),0);
   const hi = Math.max(aporteTeto,aportePiso,aporteRec,0);
 
-  document.getElementById('p_outAno').textContent = anoVenc;
-  document.getElementById('p_vencimentoNota').textContent =
-    `Prazo de acumulação: ${n1anos} anos (Tesouro Prefixado também segue vencimentos fixos; ajuste manualmente se necessário).`;
+  document.getElementById('p_outAno').textContent = Math.round(anoAlvo);
+  document.getElementById('p_vencimentoNota').textContent = `Prazo de acumulação: ${n1anos.toFixed(1)} anos.`;
   document.getElementById('p_outMin').textContent = fmtBRL(lo);
   document.getElementById('p_outMax').textContent = fmtBRL(hi);
   document.getElementById('p_outRendaRef').textContent = fmtBRL(rendaDesejada);
