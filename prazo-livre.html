@@ -948,7 +948,7 @@
         <p>Se você tem interesse em transformar essa simulação em um plano real — sólido, bem estruturado, e pensado
         para um aumento de patrimônio consistente e eficaz — me chame no WhatsApp. É rápido, sem compromisso, e o
         primeiro passo para organizar sua vida financeira com quem entende do assunto.</p>
-        <a class="whatsapp-cta" href="https://wa.me/5521981814140?text=Ol%C3%A1%20Gustavo%2C%20vim%20pelo%20simulador%20de%20renda%20e%20gostaria%20de%20conversar%20sobre%20planejamento%20financeiro." target="_blank" rel="noopener">
+        <a class="whatsapp-cta" href="https://wa.me/5500000000000?text=Ol%C3%A1%20Gustavo%2C%20vim%20pelo%20simulador%20de%20renda%20e%20gostaria%20de%20conversar%20sobre%20planejamento%20financeiro." target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.5-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5C10.1 9 9.6 7.7 9.4 7.2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s1 2.6 1.1 2.7c.1.2 2 3 4.8 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3z"/><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.6 1.4 5.1L2 22l5.1-1.3c1.5.8 3.1 1.3 4.9 1.3 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18.2c-1.6 0-3.2-.4-4.5-1.3l-.3-.2-3.3.9.9-3.2-.2-.3c-.9-1.4-1.4-3.1-1.4-4.8 0-4.6 3.7-8.3 8.3-8.3 4.6 0 8.3 3.7 8.3 8.3.1 4.7-3.6 8.3-8.3 8.3z"/></svg>
           Falar com Gustavo no WhatsApp
         </a>
@@ -1129,7 +1129,7 @@ function recalcIPCA(){
   document.getElementById('i_outMin').textContent = fmtBRL(lo);
   document.getElementById('i_outMax').textContent = fmtBRL(hi);
   document.getElementById('i_outRendaRef').textContent = fmtBRL(rendaDesejada);
-  document.getElementById('i_statTaxas').textContent = "IPCA + " + fmtPct(spreadPiso) + " a " + fmtPct(spreadTeto);
+  document.getElementById('i_statTaxas').textContent = "IPCA + " + fmtPct(spreadTeto) + " a " + fmtPct(spreadPiso);
   document.getElementById('i_statPrazo').textContent = n2anos + " anos";
   document.getElementById('i_statBruta').textContent = fmtBRL(rendaBruta) + "/mês";
 
@@ -1209,8 +1209,8 @@ function recalcCDI(){
   document.getElementById('c_outMin').textContent = fmtBRL(lo);
   document.getElementById('c_outMax').textContent = fmtBRL(hi);
   document.getElementById('c_outRendaRef').textContent = fmtBRL(rendaDesejada);
-  document.getElementById('c_statCDI').textContent = fmtPct(cdiPiso)+" a "+fmtPct(cdiTeto);
-  document.getElementById('c_statPct').textContent = pctPiso+"% a "+pctTeto+"%";
+  document.getElementById('c_statCDI').textContent = fmtPct(cdiTeto)+" a "+fmtPct(cdiPiso);
+  document.getElementById('c_statPct').textContent = pctTeto+"% a "+pctPiso+"%";
   document.getElementById('c_statBruta').textContent = fmtBRL(rendaBruta)+"/mês";
 
   const pos = gaugePositions(lo,hi,aporteTeto,aporteRec,aportePiso);
@@ -1291,7 +1291,7 @@ function recalcPRE(){
   document.getElementById('p_outMin').textContent = fmtBRL(lo);
   document.getElementById('p_outMax').textContent = fmtBRL(hi);
   document.getElementById('p_outRendaRef').textContent = fmtBRL(rendaDesejada);
-  document.getElementById('p_statPre').textContent = fmtPct(prePiso)+" a "+fmtPct(preTeto);
+  document.getElementById('p_statPre').textContent = fmtPct(preTeto)+" a "+fmtPct(prePiso);
   document.getElementById('p_statPrazo').textContent = n2anos+" anos";
   document.getElementById('p_statBruta').textContent = fmtBRL(rendaBruta)+"/mês";
 
