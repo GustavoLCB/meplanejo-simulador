@@ -155,7 +155,7 @@
   .gauge-track{
     position: relative; height: 6px; border-radius: 4px;
     background: linear-gradient(90deg, var(--teal), var(--gold) 55%, var(--brick));
-    margin: 30px 4px 8px;
+    margin: 30px 4px 40px;
   }
   .gauge-marker{
     position:absolute; top: 50%; transform: translate(-50%,-50%);
@@ -168,6 +168,11 @@
     font-family:'IBM Plex Mono', monospace; font-size: 10.5px; white-space: nowrap; color: rgba(255,255,255,0.75);
   }
   .gauge-tag b{ color:#fff; display:block; font-size: 12.5px; margin-top:1px; }
+  /* Teto/Piso ficam acima da barra; Recomendado fica abaixo, para nunca sobrepor quando os valores estão próximos */
+  .gauge-marker.rec .gauge-tag{
+    top: auto; bottom: -30px;
+  }
+  .gauge-marker.rec .gauge-tag b{ margin-top: 0; margin-bottom: 1px; }
   .gauge-ends{
     display:flex; justify-content: space-between; font-size: 10.5px; color: rgba(255,255,255,0.45);
     letter-spacing: 0.4px; padding: 0 2px;
@@ -180,6 +185,16 @@
   }
   .callout .ic{ font-size:15px; }
   .callout b{ color: var(--gold-light); }
+
+  .read-guide{
+    background: rgba(255,255,255,0.045); border-left: 3px solid var(--gold-light);
+    border-radius: 3px; padding: 14px 18px; margin-bottom: 22px;
+  }
+  .read-guide-title{ font-size:12px; font-weight:700; color: var(--gold-light); margin-bottom:9px; letter-spacing:0.2px; }
+  .read-guide ul{ margin:0; padding-left:18px; }
+  .read-guide li{ font-size:11.5px; line-height:1.65; color: rgba(255,255,255,0.78); margin-bottom:7px; }
+  .read-guide li:last-child{ margin-bottom:0; }
+  .read-guide li b{ color:#fff; }
 
   .stat-strip{ display:grid; grid-template-columns: 1fr 1fr 1fr; border-top: 1px solid var(--line-ink); position:relative; }
   @media (max-width: 560px){ .stat-strip{ grid-template-columns: 1fr; } }
@@ -247,6 +262,12 @@
   .chart-legend span{ display:flex; align-items:center; gap:6px; color:var(--text-muted); }
   .chart-legend .dot{ width:10px; height:10px; border-radius:50%; display:inline-block; }
   .chart-wrap{ position:relative; height: 280px; }
+  .log-toggle{
+    display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--text-muted);
+    margin-bottom:10px; cursor:pointer; user-select:none;
+  }
+  .log-toggle input{ cursor:pointer; }
+  .log-toggle .hint-inline{ color:#98A5AE; font-size:10.5px; }
 
   /* ---------- GLOSSÁRIO ---------- */
   .gloss-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 30px; }
@@ -360,7 +381,7 @@
     .gauge-tag{ font-size:9px; }
     .gauge-tag b{ font-size:11px; }
     .gauge-wrap{ margin: 4px 0 22px; }
-    .gauge-track{ margin: 34px 10px 8px; }
+    .gauge-track{ margin: 34px 10px 42px; }
 
     .stat{ padding: 14px 18px; }
     .stat .v{ font-size:13.5px; }
@@ -447,7 +468,10 @@
         <p>Se você tem interesse em transformar essa simulação em um plano real — sólido, bem estruturado, e pensado
         para um aumento de patrimônio consistente e eficaz — me chame no WhatsApp. É rápido, sem compromisso, e o
         primeiro passo para organizar sua vida financeira com quem entende do assunto.</p>
-        <button class="cta" style="border:none;cursor:pointer;" onclick="goTo('contato')">Ver contato &amp; WhatsApp →</button>
+        <a class="whatsapp-cta" href="https://wa.me/5500000000000?text=Ol%C3%A1%20Gustavo%2C%20vim%20pelo%20simulador%20de%20renda%20e%20gostaria%20de%20conversar%20sobre%20planejamento%20financeiro." target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.5-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5C10.1 9 9.6 7.7 9.4 7.2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s1 2.6 1.1 2.7c.1.2 2 3 4.8 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3z"/><path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.6 1.4 5.1L2 22l5.1-1.3c1.5.8 3.1 1.3 4.9 1.3 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18.2c-1.6 0-3.2-.4-4.5-1.3l-.3-.2-3.3.9.9-3.2-.2-.3c-.9-1.4-1.4-3.1-1.4-4.8 0-4.6 3.7-8.3 8.3-8.3 4.6 0 8.3 3.7 8.3 8.3.1 4.7-3.6 8.3-8.3 8.3z"/></svg>
+          Falar com Gustavo no WhatsApp
+        </a>
       </div>
     </div>
 
@@ -605,6 +629,15 @@
             <div class="gauge-ends"><span>menor aporte necessário</span><span>maior aporte necessário</span></div>
           </div>
 
+          <div class="read-guide">
+            <div class="read-guide-title">📖 Como ler estes números</div>
+            <ul>
+              <li><b>Teto</b> e <b>Piso</b> assumem que aquela taxa se mantém constante durante <b>todo o horizonte</b> — os anos de aporte <b>e</b> os anos de recebimento da renda. Não é realista esperar que a taxa de hoje (Teto) dure décadas, incluindo toda a aposentadoria — são limites teóricos de referência, não uma previsão.</li>
+              <li><b>Recomendado</b> é o cenário mais realista: a taxa cai gradualmente do teto ao piso ao longo do prazo de convergência, e permanece no piso dali em diante — inclusive durante toda a fase de recebimento da renda.</li>
+              <li>Os aportes acontecem <b>só na fase de acumulação</b>. Na fase de recebimento, os aportes param e o cliente passa a sacar a renda mensal — mas o saldo restante continua investido, rendendo a mesma taxa do cenário, o tempo todo.</li>
+            </ul>
+          </div>
+
           <div class="callout"><span class="ic">⚠</span><span><b>Estes são valores reais (dinheiro de hoje).</b> Para manter o poder de compra e o plano matemático intacto, o aporte deve ser reajustado anualmente de acordo com a inflação (IPCA) do período.</span></div>
 
           <div class="stat-strip">
@@ -623,6 +656,7 @@
         <span><i class="dot" style="background:var(--accent)"></i>Recomendado (decaimento)</span>
         <span><i class="dot" style="background:var(--brick)"></i>Teto (otimista)</span>
       </div>
+      <label class="log-toggle"><input type="checkbox" id="i_logScale"> Escala logarítmica <span class="hint-inline">(útil para horizontes muito longos, quando uma linha domina o gráfico)</span></label>
       <div class="chart-wrap"><canvas id="i_chart"></canvas></div>
     </div>
     <div class="footnote">Simulação para fins comerciais e educativos. A banda de aporte considera dois cenários extremos — manutenção da taxa atual (Teto) e compressão total até a taxa estrutural (Piso) — e um cenário recomendado que pondera o decaimento linear entre as duas. O prazo de acumulação usado é exatamente o informado (idade da aposentadoria menos idade atual), sem vínculo com vencimentos de nenhum título específico. Rentabilidade passada não garante rentabilidade futura.</div>
@@ -718,6 +752,15 @@
             <div class="gauge-ends"><span>menor aporte necessário</span><span>maior aporte necessário</span></div>
           </div>
 
+          <div class="read-guide">
+            <div class="read-guide-title">📖 Como ler estes números</div>
+            <ul>
+              <li><b>Teto</b> e <b>Piso</b> assumem que o CDI e o %CDI se mantêm constantes durante <b>todo o horizonte</b> — os anos de aporte <b>e</b> os anos de recebimento da renda. Não é realista esperar que o CDI de hoje (Teto) dure décadas, incluindo toda a aposentadoria — são limites teóricos de referência, não uma previsão.</li>
+              <li><b>Recomendado</b> é o cenário mais realista: o CDI e o %CDI caem gradualmente do teto ao piso ao longo do prazo de convergência, e permanecem no piso dali em diante — inclusive durante toda a fase de recebimento da renda.</li>
+              <li>Os aportes acontecem <b>só na fase de acumulação</b>. Na fase de recebimento, os aportes param e o cliente passa a sacar a renda mensal — mas o saldo restante continua investido, rendendo a mesma taxa do cenário (convertida a poder de compra pelo IPCA médio informado), o tempo todo.</li>
+            </ul>
+          </div>
+
           <div class="callout"><span class="ic">⚠</span><span><b>Estes são valores reais (dinheiro de hoje).</b> O aporte deve ser reajustado anualmente pela inflação. O CDI é nominal — a conversão para poder de compra usa o IPCA médio esperado informado.</span></div>
 
           <div class="stat-strip">
@@ -736,6 +779,7 @@
         <span><i class="dot" style="background:var(--accent)"></i>Recomendado (decaimento)</span>
         <span><i class="dot" style="background:var(--brick)"></i>Teto (otimista)</span>
       </div>
+      <label class="log-toggle"><input type="checkbox" id="c_logScale"> Escala logarítmica <span class="hint-inline">(útil para horizontes muito longos, quando uma linha domina o gráfico)</span></label>
       <div class="chart-wrap"><canvas id="c_chart"></canvas></div>
     </div>
     <div class="footnote">Simulação para fins comerciais e educativos. O CDI e o %CDI decaem de forma independente (teto→piso) ao longo do prazo de convergência. Diferente do IPCA+, a taxa é nominal, por isso o IPCA médio esperado é necessário para expressar os valores em poder de compra real. Rentabilidade passada não garante rentabilidade futura.</div>
@@ -814,6 +858,15 @@
             <div class="gauge-ends"><span>menor aporte necessário</span><span>maior aporte necessário</span></div>
           </div>
 
+          <div class="read-guide">
+            <div class="read-guide-title">📖 Como ler estes números</div>
+            <ul>
+              <li><b>Teto</b> e <b>Piso</b> assumem que aquela taxa prefixada se mantém constante durante <b>todo o horizonte</b> — os anos de aporte <b>e</b> os anos de recebimento da renda. Não é realista esperar que a taxa de hoje (Teto) dure décadas, incluindo toda a aposentadoria — são limites teóricos de referência, não uma previsão.</li>
+              <li><b>Recomendado</b> é o cenário mais realista: a taxa prefixada cai gradualmente do teto ao piso ao longo do prazo de convergência, e permanece no piso dali em diante — inclusive durante toda a fase de recebimento da renda.</li>
+              <li>Os aportes acontecem <b>só na fase de acumulação</b>. Na fase de recebimento, os aportes param e o cliente passa a sacar a renda mensal — mas o saldo restante continua investido, rendendo a mesma taxa do cenário (convertida a poder de compra pelo IPCA médio informado), o tempo todo.</li>
+            </ul>
+          </div>
+
           <div class="callout"><span class="ic">⚠</span><span><b>Estes são valores reais (dinheiro de hoje).</b> O aporte deve ser reajustado anualmente pela inflação. A taxa prefixada é nominal — a conversão usa o IPCA médio esperado informado.</span></div>
 
           <div class="stat-strip">
@@ -832,6 +885,7 @@
         <span><i class="dot" style="background:var(--accent)"></i>Recomendado (decaimento)</span>
         <span><i class="dot" style="background:var(--brick)"></i>Teto (otimista)</span>
       </div>
+      <label class="log-toggle"><input type="checkbox" id="p_logScale"> Escala logarítmica <span class="hint-inline">(útil para horizontes muito longos, quando uma linha domina o gráfico)</span></label>
       <div class="chart-wrap"><canvas id="p_chart"></canvas></div>
     </div>
     <div class="footnote">Simulação para fins comerciais e educativos. A taxa prefixada decai de teto para piso ao longo do prazo de convergência. Sendo nominal, o IPCA médio esperado converte os valores em poder de compra real. Rentabilidade passada não garante rentabilidade futura.</div>
@@ -1083,7 +1137,7 @@ function aporteExatoDecay(capitalIni, n1anos, n2anos, retiradaMensal, rateAtFn){
 }
 
 const chartInstances = {};
-function renderChart(canvasId, labels, series){
+function renderChart(canvasId, labels, series, logScale){
   const ctx = document.getElementById(canvasId);
   if(!ctx) return;
   if(typeof Chart === 'undefined'){
@@ -1119,7 +1173,8 @@ function renderChart(canvasId, labels, series){
       },
       scales: {
         x: { grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.5)', font:{size:10}} },
-        y: { grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.5)', font:{size:10},
+        y: { type: logScale ? 'logarithmic' : 'linear',
+             grid:{color:'rgba(255,255,255,0.06)'}, ticks:{color:'rgba(255,255,255,0.5)', font:{size:10},
              callback:(v)=> (v>=1000000? (v/1000000).toFixed(1)+'M' : v>=1000? (v/1000).toFixed(0)+'k' : v) } }
       }
     }
@@ -1190,7 +1245,7 @@ function recalcIPCA(){
     {label:'Piso (conservador)', data: trPiso.map(p=>p.saldo), color:'#2F6F5E'},
     {label:'Recomendado (decaimento)', data: trDec.map(p=>p.saldo), color:'#3F6B7D', width:3},
     {label:'Teto (otimista)', data: trTeto.map(p=>p.saldo), color:'#9C4A36', dash:[4,3]}
-  ]);
+  ], document.getElementById('i_logScale').checked);
 }
 
 /* ============ CDI TAB ============ */
@@ -1280,7 +1335,7 @@ function recalcCDI(){
     {label:'Piso (conservador)', data: trPiso.map(p=>p.saldo), color:'#2F6F5E'},
     {label:'Recomendado (decaimento)', data: trDec.map(p=>p.saldo), color:'#3F6B7D', width:3},
     {label:'Teto (otimista)', data: trTeto.map(p=>p.saldo), color:'#9C4A36', dash:[4,3]}
-  ]);
+  ], document.getElementById('c_logScale').checked);
 }
 
 /* ============ PREFIXADO TAB ============ */
@@ -1355,7 +1410,7 @@ function recalcPRE(){
     {label:'Piso (conservador)', data: trPiso.map(p=>p.saldo), color:'#2F6F5E'},
     {label:'Recomendado (decaimento)', data: trDec.map(p=>p.saldo), color:'#3F6B7D', width:3},
     {label:'Teto (otimista)', data: trTeto.map(p=>p.saldo), color:'#9C4A36', dash:[4,3]}
-  ]);
+  ], document.getElementById('p_logScale').checked);
 }
 
 document.querySelectorAll('#page-ipca input, #page-ipca select').forEach(el=>el.addEventListener('input', recalcIPCA));
