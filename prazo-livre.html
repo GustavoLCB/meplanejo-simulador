@@ -1061,6 +1061,27 @@ function decayAt(anos, mode, teto, piso, D){
   return anos<=D ? (teto - (teto-piso)*anos/D) : piso;
 }
 
+// Saldo final (sem amostragem intermediária) — usado apenas para resolver o aporte exato.
+function saldoFinal(mode, aporteMensal, capitalIni, n1anos, n2anos, retiradaMensal, rateAtFn){
+  const totalMeses = Math.round((n1anos+n2anos)*12);
+  const n1meses = Math.round(n1anos*12);
+  let saldo = capitalIni;
+  for(let m=1; m<=totalMeses; m++){
+    const tm = Math.pow(1+rateAtFn(m/12, mode), 1/12)-1;
+    saldo = saldo*(1+tm);
+    if(m<=n1meses){ saldo += aporteMensal; } else { saldo -= retiradaMensal; }
+  }
+  return saldo;
+}
+// O saldo final é uma função LINEAR do aporte mensal (mesma trajetória de taxas, mesmo capital
+// inicial e mesma retirada) — por isso dá para resolver o aporte exato com apenas 2 pontos,
+// em vez de usar a taxa média (que subestima o aporte necessário sob decaimento).
+function aporteExatoDecay(capitalIni, n1anos, n2anos, retiradaMensal, rateAtFn){
+  const s0 = saldoFinal('decay', 0, capitalIni, n1anos, n2anos, retiradaMensal, rateAtFn);
+  const s1 = saldoFinal('decay', 1, capitalIni, n1anos, n2anos, retiradaMensal, rateAtFn);
+  return -s0/(s1-s0);
+}
+
 const chartInstances = {};
 function renderChart(canvasId, labels, series){
   const ctx = document.getElementById(canvasId);
@@ -1136,10 +1157,11 @@ function recalcIPCA(){
   const {anoAlvo, n1anos} = prazoAcumulacao(idadeAtual, idadeAposent, anoAtual);
   const rendaBruta = aliquotaIR>0 ? rendaDesejada/(1-aliquotaIR) : rendaDesejada;
   const p = {spreadTeto, spreadPiso, D, n1anos, n2anos, custodia, rendaBruta, capitalIni};
+  const rateAtIPCA = (anos, mode) => decayAt(anos, mode, spreadTeto, spreadPiso, D) - custodia;
 
   const aporteTeto = calcAporteIPCA(spreadTeto, true, p);
   const aportePiso = calcAporteIPCA(spreadPiso, true, p);
-  const aporteRec  = calcAporteIPCA(null, false, p);
+  const aporteRec  = aporteExatoDecay(capitalIni, n1anos, n2anos, rendaBruta, rateAtIPCA);
   const lo = Math.max(Math.min(aporteTeto,aportePiso,aporteRec),0);
   const hi = Math.max(aporteTeto,aportePiso,aporteRec,0);
 
@@ -1160,9 +1182,8 @@ function recalcIPCA(){
   document.getElementById('i_tagRecVal').textContent = fmtBRL(aporteRec);
   document.getElementById('i_tagPisoVal').textContent = fmtBRL(aportePiso);
 
-  const rateAtIPCA = (anos, mode) => decayAt(anos, mode, spreadTeto, spreadPiso, D) - custodia;
-  const trTeto = trajectory('teto', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtIPCA);
-  const trPiso = trajectory('piso', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtIPCA);
+  const trTeto = trajectory('teto', aporteTeto, capitalIni, n1anos, n2anos, rendaBruta, rateAtIPCA);
+  const trPiso = trajectory('piso', aportePiso, capitalIni, n1anos, n2anos, rendaBruta, rateAtIPCA);
   const trDec  = trajectory('decay', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtIPCA);
   const labels = trDec.map(p=>p.ano);
   renderChart('i_chart', labels, [
@@ -1216,10 +1237,21 @@ function recalcCDI(){
   const {anoAlvo, n1anos} = prazoAcumulacao(idadeAtual, idadeAposent, anoAtual);
   const rendaBruta = aliquotaIR>0 ? rendaDesejada/(1-aliquotaIR) : rendaDesejada;
   const p = {cdiTeto,cdiPiso,pctTeto,pctPiso,D,n1anos,n2anos,custodia,ipca,rendaBruta,capitalIni};
+  const rateAtCDI = (anos, mode) => {
+    let nom;
+    if(mode==='teto') nom = cdiTeto*(pctTeto/100) - custodia;
+    else if(mode==='piso') nom = cdiPiso*(pctPiso/100) - custodia;
+    else {
+      const cdiNow = decayAt(anos,'decay',cdiTeto,cdiPiso,D);
+      const pctNow = decayAt(anos,'decay',pctTeto,pctPiso,D);
+      nom = cdiNow*(pctNow/100) - custodia;
+    }
+    return (1+nom)/(1+ipca) - 1;
+  };
 
   const aporteTeto = calcAporteCDI(cdiTeto, pctTeto, true, p);
   const aportePiso = calcAporteCDI(cdiPiso, pctPiso, true, p);
-  const aporteRec  = calcAporteCDI(null, null, false, p);
+  const aporteRec  = aporteExatoDecay(capitalIni, n1anos, n2anos, rendaBruta, rateAtCDI);
   const lo = Math.max(Math.min(aporteTeto,aportePiso,aporteRec),0);
   const hi = Math.max(aporteTeto,aportePiso,aporteRec,0);
 
@@ -1240,19 +1272,8 @@ function recalcCDI(){
   document.getElementById('c_tagRecVal').textContent = fmtBRL(aporteRec);
   document.getElementById('c_tagPisoVal').textContent = fmtBRL(aportePiso);
 
-  const rateAtCDI = (anos, mode) => {
-    let nom;
-    if(mode==='teto') nom = cdiTeto*(pctTeto/100) - custodia;
-    else if(mode==='piso') nom = cdiPiso*(pctPiso/100) - custodia;
-    else {
-      const cdiNow = decayAt(anos,'decay',cdiTeto,cdiPiso,D);
-      const pctNow = decayAt(anos,'decay',pctTeto,pctPiso,D);
-      nom = cdiNow*(pctNow/100) - custodia;
-    }
-    return (1+nom)/(1+ipca) - 1;
-  };
-  const trTeto = trajectory('teto', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtCDI);
-  const trPiso = trajectory('piso', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtCDI);
+  const trTeto = trajectory('teto', aporteTeto, capitalIni, n1anos, n2anos, rendaBruta, rateAtCDI);
+  const trPiso = trajectory('piso', aportePiso, capitalIni, n1anos, n2anos, rendaBruta, rateAtCDI);
   const trDec  = trajectory('decay', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtCDI);
   const labels = trDec.map(p=>p.ano);
   renderChart('c_chart', labels, [
@@ -1298,10 +1319,14 @@ function recalcPRE(){
   const {anoAlvo, n1anos} = prazoAcumulacao(idadeAtual, idadeAposent, anoAtual);
   const rendaBruta = aliquotaIR>0 ? rendaDesejada/(1-aliquotaIR) : rendaDesejada;
   const p = {preTeto,prePiso,D,n1anos,n2anos,custodia,ipca,rendaBruta,capitalIni};
+  const rateAtPRE = (anos, mode) => {
+    const nom = decayAt(anos, mode, preTeto, prePiso, D) - custodia;
+    return (1+nom)/(1+ipca) - 1;
+  };
 
   const aporteTeto = calcAportePRE(preTeto, true, p);
   const aportePiso = calcAportePRE(prePiso, true, p);
-  const aporteRec  = calcAportePRE(null, false, p);
+  const aporteRec  = aporteExatoDecay(capitalIni, n1anos, n2anos, rendaBruta, rateAtPRE);
   const lo = Math.max(Math.min(aporteTeto,aportePiso,aporteRec),0);
   const hi = Math.max(aporteTeto,aportePiso,aporteRec,0);
 
@@ -1322,12 +1347,8 @@ function recalcPRE(){
   document.getElementById('p_tagRecVal').textContent = fmtBRL(aporteRec);
   document.getElementById('p_tagPisoVal').textContent = fmtBRL(aportePiso);
 
-  const rateAtPRE = (anos, mode) => {
-    const nom = decayAt(anos, mode, preTeto, prePiso, D) - custodia;
-    return (1+nom)/(1+ipca) - 1;
-  };
-  const trTeto = trajectory('teto', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtPRE);
-  const trPiso = trajectory('piso', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtPRE);
+  const trTeto = trajectory('teto', aporteTeto, capitalIni, n1anos, n2anos, rendaBruta, rateAtPRE);
+  const trPiso = trajectory('piso', aportePiso, capitalIni, n1anos, n2anos, rendaBruta, rateAtPRE);
   const trDec  = trajectory('decay', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtPRE);
   const labels = trDec.map(p=>p.ano);
   renderChart('p_chart', labels, [
