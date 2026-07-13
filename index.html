@@ -1186,8 +1186,8 @@ function recalcIPCA(){
   document.getElementById('i_tagRecVal').textContent = fmtBRL(aporteRec);
   document.getElementById('i_tagPisoVal').textContent = fmtBRL(aportePiso);
 
-  const trTeto = trajectory('teto', aporteTeto, capitalIni, n1anos, n2anos, rendaBruta, rateAtIPCA);
-  const trPiso = trajectory('piso', aportePiso, capitalIni, n1anos, n2anos, rendaBruta, rateAtIPCA);
+  const trTeto = trajectory('teto', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtIPCA);
+  const trPiso = trajectory('piso', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtIPCA);
   const trDec  = trajectory('decay', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtIPCA);
   const labels = trDec.map(p=>p.ano);
   renderChart('i_chart', labels, [
@@ -1277,8 +1277,8 @@ function recalcCDI(){
   document.getElementById('c_tagRecVal').textContent = fmtBRL(aporteRec);
   document.getElementById('c_tagPisoVal').textContent = fmtBRL(aportePiso);
 
-  const trTeto = trajectory('teto', aporteTeto, capitalIni, n1anos, n2anos, rendaBruta, rateAtCDI);
-  const trPiso = trajectory('piso', aportePiso, capitalIni, n1anos, n2anos, rendaBruta, rateAtCDI);
+  const trTeto = trajectory('teto', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtCDI);
+  const trPiso = trajectory('piso', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtCDI);
   const trDec  = trajectory('decay', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtCDI);
   const labels = trDec.map(p=>p.ano);
   renderChart('c_chart', labels, [
@@ -1353,8 +1353,8 @@ function recalcPRE(){
   document.getElementById('p_tagRecVal').textContent = fmtBRL(aporteRec);
   document.getElementById('p_tagPisoVal').textContent = fmtBRL(aportePiso);
 
-  const trTeto = trajectory('teto', aporteTeto, capitalIni, n1anos, n2anos, rendaBruta, rateAtPRE);
-  const trPiso = trajectory('piso', aportePiso, capitalIni, n1anos, n2anos, rendaBruta, rateAtPRE);
+  const trTeto = trajectory('teto', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtPRE);
+  const trPiso = trajectory('piso', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtPRE);
   const trDec  = trajectory('decay', aporteRec, capitalIni, n1anos, n2anos, rendaBruta, rateAtPRE);
   const labels = trDec.map(p=>p.ano);
   renderChart('p_chart', labels, [
